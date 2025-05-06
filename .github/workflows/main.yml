@@ -1,8 +1,5 @@
 name: Commit Sign-Off and Tests Check
-on:
-  pull_request:
-    branches:
-      - development
+on: pull_request
 
 jobs:
   signoff-and-tests-check:
