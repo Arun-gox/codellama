@@ -1,0 +1,42 @@
+name: Commit Sign-Off and Tests Check
+on:
+  pull_request:
+    branches:
+      - development
+
+jobs:
+  signoff-and-tests-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Verify Latest Commit Sign-Off and Tests
+        run: |
+          latest_commit=$(git rev-parse origin/${{ github.head_ref }})
+          commit_message=$(git log -1 --pretty=format:%B $latest_commit | tr '\n' ' ')
+
+          echo "🔍 Checking commit: $latest_commit"
+          echo "📝 Commit Message:"
+          echo "-----------------------------------"
+          echo "$commit_message"
+          echo "-----------------------------------"
+
+          if ! echo "$commit_message" | grep -i -q "All files are within allowed size range"; then
+            echo "❌ Latest commit ($latest_commit) exceeds buid limit!"
+            exit 1
+          fi
+
+          if ! echo "$commit_message" | grep -i -q "Tests passed"; then
+            echo "❌ Latest commit ($latest_commit) is missing 'Tests passed'!"
+            exit 1
+          fi
+
+          if ! echo "$commit_message" | grep -i -q "Signed-off-by"; then
+            echo "❌ Latest commit ($latest_commit) is missing 'Signed-off-by'!"
+            exit 1
+          fi
+
+          echo "✅ Latest commit ($latest_commit) is under set build size, contains both 'Tests passed' and 'Signed-off-by'"
